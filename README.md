@@ -7,11 +7,13 @@ Proyek ini menggunakan DVC untuk memisahkan alur *Data Engineering* dan *Model T
 
 ```mermaid
 flowchart TD
-    node1["prepare
+    node1["data/raw/Data_running.csv.dvc"]
+    node2["prepare
     (src/data_preparation.py)"]
-    node2["train
+    node3["train
     (src/model_training.py)"]
     node1-->node2
+    node2-->node3
 ```
 
 ## Cara Menjalankan Aplikasi Web
