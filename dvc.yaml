@@ -1,5 +1,4 @@
 stages:
-  # Tahap 1: Persiapan Data
   prepare:
     cmd: python src/data_preparation.py
     deps:
@@ -10,7 +9,6 @@ stages:
       - data/processed/test.csv
       - reports/eda_distribusi_level.png
 
-  # Tahap 2: Pelatihan Model
   train:
     cmd: python src/model_training.py
     deps:
@@ -19,3 +17,4 @@ stages:
       - data/processed/test.csv
     outs:
       - models/model_rekomendasi.pkl
+      - reports/metrics.json

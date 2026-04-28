@@ -1,0 +1,50 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/data_preparation.py
+    deps:
+    - path: data/raw/Data_running.csv
+      hash: md5
+      md5: cdae308efa11a20ec5532ebc0bb7b5d0
+      size: 827825781
+    - path: src/data_preparation.py
+      hash: md5
+      md5: d80825bc892d76fca583cf5aad4b86e8
+      size: 3831
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: cbca6ba469744d072ad2bc378bccdc98
+      size: 53353
+    - path: data/processed/train.csv
+      hash: md5
+      md5: a2cdc1ee8d999cded9dd70bb59e8c961
+      size: 213079
+    - path: reports/eda_distribusi_level.png
+      hash: md5
+      md5: 5b57717043912e6957495d2ced3dce4f
+      size: 17959
+  train:
+    cmd: python src/model_training.py
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: cbca6ba469744d072ad2bc378bccdc98
+      size: 53353
+    - path: data/processed/train.csv
+      hash: md5
+      md5: a2cdc1ee8d999cded9dd70bb59e8c961
+      size: 213079
+    - path: src/model_training.py
+      hash: md5
+      md5: d73ed90760ad6b73dc193ac91627a3c7
+      size: 3177
+    outs:
+    - path: models/model_rekomendasi.pkl
+      hash: md5
+      md5: 65e33479bb6ef89fe8d9730a08914444
+      size: 429971
+    - path: reports/metrics.json
+      hash: md5
+      md5: db4f43ec056078ef645e91b79f5b4cf2
+      size: 227

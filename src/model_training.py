@@ -4,8 +4,11 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV 
 import joblib
 import warnings
+import json 
+import os 
 
 warnings.filterwarnings('ignore')
 
@@ -45,18 +48,49 @@ preprocessor = ColumnTransformer(
     ])
 
 # Model Random Forest untuk klasifikasi level
+# [DIUBAH SEDIKIT]: Menghapus n_estimators=50 dari sini karena akan dicarikan otomatis oleh GridSearchCV
 rf_pipeline = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    ('classifier', RandomForestClassifier(n_estimators=50, random_state=42))
+    ('classifier', RandomForestClassifier(random_state=42))
 ])
 
-print("\nMelatih Model AI...")
-rf_pipeline.fit(X_train, y_train)
+# Mencari Model Terbaik (Hyperparameter Tuning)
+print("\nMelatih dan Mencari Model Terbaik...")
 
-akurasi = rf_pipeline.score(X_test, y_test)
-print(f"Training Selesai! Akurasi Model: {akurasi * 100:.2f}%")
+param_grid = {
+    'classifier__n_estimators': [50, 100, 150],
+    'classifier__max_depth': [None, 10, 20]
+}
+
+# Membuat mesin untuk mencari model terbaik
+grid_search = GridSearchCV(rf_pipeline, param_grid, cv=3, n_jobs=-1, verbose=1)
+grid_search.fit(X_train, y_train)
+
+# Mengambil model yang paling terbaik
+best_pipeline = grid_search.best_estimator_
+best_params = grid_search.best_params_
+print(f"\nParameter Terbaik Ditemukan: {best_params}")
+
+# Menggunakan model terbaik untuk menghitung akurasi
+akurasi = best_pipeline.score(X_test, y_test)
+print(f"Training Selesai! Akurasi Model Terbaik: {akurasi * 100:.2f}%")
+
+# Log Experiment
+print("\nMencatat Log Experiment...")
+experiment_log = {
+    "model_type": "Random Forest Pipeline",
+    "best_parameters": best_params,
+    "accuracy": akurasi,
+    "total_training_samples": len(train_df)
+}
+
+os.makedirs('reports', exist_ok=True)
+with open('reports/metrics.json', 'w') as f:
+    json.dump(experiment_log, f, indent=4)
+print("Log Experiment berhasil disimpan di: reports/metrics.json")
 
 print("\nMenyimpan model...")
 model_path = 'models/model_rekomendasi.pkl'
-joblib.dump(rf_pipeline, model_path)
+# Menyimpan best_pipeline
+joblib.dump(best_pipeline, model_path)
 print(f"Model berhasil disimpan di: {model_path}")

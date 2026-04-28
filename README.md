@@ -15,7 +15,3 @@ flowchart TD
     node1-->node2
     node2-->node3
 ```
-
-## Cara Menjalankan Aplikasi Web
-1. Pastikan model sudah dilatih dengan menjalankan `dvc repro`.
-2. Jalankan perintah ini di terminal: `streamlit run src/app.py`

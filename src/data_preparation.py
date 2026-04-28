@@ -38,14 +38,22 @@ df_clean['Athlete age'] = (df_clean['Year of event'] - df_clean['Athlete year of
 # Memfilter umur 15-80 tahun
 df_clean = df_clean[(df_clean['Athlete age'] >= 15) & (df_clean['Athlete age'] <= 80)]
 
+# Standardisasi Kolom Gender agar bersih untuk AI
+df_clean = df_clean[df_clean['Athlete gender'].isin(['M', 'F', 'm', 'f'])]
+df_clean['Athlete gender'] = df_clean['Athlete gender'].str.upper()
+
 # Mengubah tipe datta kecepatan jadi angka
 df_clean['Athlete average speed'] = pd.to_numeric(df_clean['Athlete average speed'], errors='coerce')
 
 # Mengekstrak angka jarak
-df_clean['Distance_num'] = df_clean['Event distance/length'].str.extract(r'(\d+)').astype(float)
+df_clean['Distance_num'] = df_clean['Event distance/length'].str.extract(r'(\d+\.?\d*)').astype(float)
 
 # Membuang baris yang gagal diubah jadi angka
 df_clean = df_clean.dropna(subset=['Athlete average speed', 'Distance_num'])
+
+# Memfilter anomali (Outlier) kecepatan dan jarak yang tidak logis
+df_clean = df_clean[(df_clean['Athlete average speed'] >= 2.0) & (df_clean['Athlete average speed'] <= 25.0)] 
+df_clean = df_clean[(df_clean['Distance_num'] > 0)]
 
 # Membuat Label Target (Level)
 def determine_level(row):
@@ -56,6 +64,10 @@ def determine_level(row):
     else: return 'Intermediate'
 
 df_clean['Level'] = df_clean.apply(determine_level, axis=1)
+
+# Mengisolasi hanya kolom yang akan dipakai untuk pelatihan AI
+fitur_final = ['Athlete age', 'Athlete average speed', 'Distance_num', 'Athlete gender', 'Level']
+df_clean = df_clean[fitur_final]
 
 # EDA(Exploratory Data Analysis)
 print("\nExploratory data analysis...")
