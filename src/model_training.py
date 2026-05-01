@@ -48,14 +48,13 @@ preprocessor = ColumnTransformer(
     ])
 
 # Model Random Forest untuk klasifikasi level
-# [DIUBAH SEDIKIT]: Menghapus n_estimators=50 dari sini karena akan dicarikan otomatis oleh GridSearchCV
 rf_pipeline = Pipeline(steps=[
     ('preprocessor', preprocessor),
     ('classifier', RandomForestClassifier(random_state=42))
 ])
 
 # Mencari Model Terbaik (Hyperparameter Tuning)
-print("\nMelatih dan Mencari Model Terbaik...")
+print("\nMelatih dan Membandingkan Beberapa Variasi Model...")
 
 param_grid = {
     'classifier__n_estimators': [50, 100, 150],
@@ -63,17 +62,31 @@ param_grid = {
 }
 
 # Membuat mesin untuk mencari model terbaik
-grid_search = GridSearchCV(rf_pipeline, param_grid, cv=3, n_jobs=-1, verbose=1)
+grid_search = GridSearchCV(rf_pipeline, param_grid, cv=3, n_jobs=-1, verbose=0) # verbose diubah ke 0 agar print manual kita yang muncul
 grid_search.fit(X_train, y_train)
+
+# Menampilkan semua model yang diuji
+print("\nHasil pengujian beberapa model(Hyperparameter Tuning):")
+print("-" * 60)
+hasil_uji = grid_search.cv_results_
+for mean_score, params in zip(hasil_uji['mean_test_score'], hasil_uji['params']):
+    pohon = params['classifier__n_estimators']
+    kedalaman = params['classifier__max_depth']
+    akurasi_persen = mean_score * 100
+    print(f"Model dengan {pohon} Pohon & Kedalaman {kedalaman} \t-> Akurasi Validasi: {akurasi_persen:.2f}%")
+print("-" * 60)
+
 
 # Mengambil model yang paling terbaik
 best_pipeline = grid_search.best_estimator_
 best_params = grid_search.best_params_
-print(f"\nParameter Terbaik Ditemukan: {best_params}")
 
-# Menggunakan model terbaik untuk menghitung akurasi
+print(f"\nBest model ditemukan:")
+print(f"Versi terbaik adalah: {best_params['classifier__n_estimators']} Pohon dengan Kedalaman {best_params['classifier__max_depth']}")
+
+# Menggunakan model terbaik untuk menghitung akurasi di data test
 akurasi = best_pipeline.score(X_test, y_test)
-print(f"Training Selesai! Akurasi Model Terbaik: {akurasi * 100:.2f}%")
+print(f"Training Selesai! Akurasi Model Terbaik pada Data Testing: {akurasi * 100:.2f}%")
 
 # Log Experiment
 print("\nMencatat Log Experiment...")

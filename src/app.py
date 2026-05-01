@@ -21,7 +21,7 @@ class SportScienceRecommender:
         if umur < 18 and target_lari in ['Full Marathon (42K)', 'Ultra Running (50K+)']:
             return {
                 "status": "warning",
-                "program": "⚠️ PEMBATASAN MEDIS (PEDIATRIK)",
+                "program": "PEMBATASAN MEDIS (PEDIATRIK)",
                 "referensi": "Pedoman Kedokteran Olahraga Remaja (Youth Sports Guidelines)",
                 "catatan": f"Usia Anda ({umur} tahun) masih dalam masa pertumbuhan tulang. Lari Marathon/Ultra berisiko merusak lempeng pertumbuhan tulang (epiphyseal plates) secara permanen.",
                 "jadwal": {
@@ -35,7 +35,7 @@ class SportScienceRecommender:
             if target_lari in ['Full Marathon (42K)', 'Ultra Running (50K+)'] or level_ai == 'Advanced':
                 return {
                     "status": "warning",
-                    "program": "⚠️ PERINGATAN KARDIOVASKULAR (SENIOR)",
+                    "program": "PERINGATAN KARDIOVASKULAR (SENIOR)",
                     "referensi": "American Heart Association - Senior Athlete",
                     "catatan": f"Di usia {umur} tahun, latihan intensitas tinggi (Advanced) atau jarak ekstrem sangat membebani kerja jantung dan persendian.",
                     "jadwal": {
@@ -45,7 +45,7 @@ class SportScienceRecommender:
                 }
             else:
                 # Jika lansia lari 5K/10K (Aman, tapi beri catatan tambahan)
-                catatan_lansia = "\n\n🧓 **CATATAN SENIOR:** Tambahkan waktu pemanasan 10 menit ekstra. Pemulihan (recovery) otot Anda membutuhkan waktu lebih lama, jangan paksakan lari jika sendi terasa nyeri."
+                catatan_lansia = "\n\n **CATATAN SENIOR:** Tambahkan waktu pemanasan 10 menit ekstra. Pemulihan (recovery) otot Anda membutuhkan waktu lebih lama, jangan paksakan lari jika sendi terasa nyeri."
 
         # Validasi jarak mingguan(mileage)
         if target_lari == 'Half-Marathon (21K)' and mileage < 15:
@@ -59,7 +59,7 @@ class SportScienceRecommender:
         if level_ai == 'Beginner' and target_lari == 'Ultra Running (50K+)':
             return {
                 "status": "warning",
-                "program": "⚠️ DITOLAK SECARA MEDIS",
+                "program": "DITOLAK SECARA MEDIS",
                 "referensi": "ITRA (International Trail Running Association)",
                 "catatan": "Sebagai pelari Beginner, mendaftar Ultra berisiko Rhabdomyolysis (kerusakan otot fatal hingga gagal ginjal).",
                 "jadwal": {
@@ -222,7 +222,7 @@ with col1:
     mileage = st.number_input("Total Jarak Seminggu Ini (km)", 0, 200, 10)
 
 with col2:
-    st.write("⏱️ Rata-rata Pace Sekarang (menit/km)")
+    st.write("Rata-rata Pace Sekarang (menit/km)")
     c_min, c_sec = st.columns(2)
     pace_m = c_min.number_input("Menit", 3, 15, 7)
     pace_d = c_sec.number_input("Detik", 0, 59, 30)
