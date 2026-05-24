@@ -1,9 +1,7 @@
 import streamlit as st
-import pandas as pd
-import joblib
-import os
+import requests
 
-# Logika Rule-Based
+# LOGIKA RULE-BASED
 class SportScienceRecommender:
     """Logika berdasarkan Hal Higdon, Jack Daniels, dan Pedoman Medis Olahraga Usia"""
     
@@ -44,7 +42,6 @@ class SportScienceRecommender:
                     }
                 }
             else:
-                # Jika lansia lari 5K/10K (Aman, tapi beri catatan tambahan)
                 catatan_lansia = "\n\n **CATATAN SENIOR:** Tambahkan waktu pemanasan 10 menit ekstra. Pemulihan (recovery) otot Anda membutuhkan waktu lebih lama, jangan paksakan lari jika sendi terasa nyeri."
 
         # Validasi jarak mingguan(mileage)
@@ -199,11 +196,13 @@ class SportScienceRecommender:
                 "Saran Latihan": f"Perbanyak frekuensi lari santai dan biasakan {saran_latihan} di akhir pekan."
             }
         }
-# Input
+
+
+# ANTARMUKA PENGGUNA
 st.set_page_config(page_title="AI Coach Lari", page_icon="🏃‍♂️", layout="wide")
 
 st.title("REKOMENDASI PROGRAM LATIHAN LARI BERBASIS AI")
-st.write("Sistem ini menggabungkan **Machine Learning** untuk menilai profil Anda dan **Sistem Pakar** untuk meresepkan jadwal.")
+st.write("Sistem ini menggabungkan **Machine Learning** (API) untuk menilai profil Anda dan **Sistem Pakar** untuk meresepkan jadwal.")
 
 with st.sidebar:
     st.header("Profil Fisik (Input AI)")
@@ -213,7 +212,6 @@ with st.sidebar:
     speed = st.number_input("Kecepatan Rata-rata (km/jam)", 2.0, 20.0, 6.0)
     distance = st.number_input("Jarak Sekali Lari (km)", 1.0, 100.0, 5.0)
 
-# Target dan Latihan
 st.subheader("Detail Latihan & Target")
 col1, col2, col3 = st.columns(3)
 
@@ -231,47 +229,56 @@ with col3:
     hari_aktif = st.slider("Hari Latihan per Minggu", 1, 6, 3)
 
 
-# Output
+# MENGHUBUNGKAN KE API DAN MENGHASILKAN JADWAL
 if st.button("ANALISIS & BUAT JADWAL LATIHAN", use_container_width=True):
     
-    # Load Model
-    try:
-        model = joblib.load('models/model_rekomendasi.pkl')
-    except:
-        st.error("Model AI tidak ditemukan! Silakan jalankan 'python src/model_training.py' terlebih dahulu.")
-        st.stop()
-
-    # Prediksi AI
-    input_data = pd.DataFrame({
-        'Athlete age': [umur],
-        'Athlete average speed': [speed],
-        'Distance_num': [distance],
-        'Athlete gender': [gender]
-    })
-    predicted_level = model.predict(input_data)[0]
-
-    # Ambil Rekomendasi Rule-Based
-    coach = SportScienceRecommender()
-    rekom = coach.dapatkan_rekomendasi(umur, predicted_level, target, pace_m, pace_d, mileage, hari_aktif)
-
-    # Tampilkan Hasil
-    st.divider()
+    # URL API Hugging Face Anda yang sudah valid
+    API_URL = "https://yezhaa-api-sistem-rekomendasi-lari.hf.space/predict"
     
-    # Layout Hasil
-    res_col1, res_col2 = st.columns([1, 2])
-    
-    with res_col1:
-        st.metric("Hasil Analisis AI (Level)", predicted_level.upper())
-        st.info(f"**Program:** {rekom['program']}\n\n**Referensi Teori:** {rekom['referensi']}")
+    # Payload yang disesuaikan persis dengan Swagger UI
+    payload = {
+        "umur": umur,
+        "speed": speed,
+        "distance": distance,
+        "gender": gender
+    }
 
-    with res_col2:
-        if rekom['status'] == 'warning':
-            st.warning(f"**PERINGATAN KEAMANAN:** {rekom['catatan']}")
-        else:
-            st.success(f"**CATATAN PELATIH:** {rekom['catatan']}")
-        
-        st.markdown("#### Jadwal Latihan Mingguan Anda:")
-        for hari, kegiatan in rekom['jadwal'].items():
-            st.write(f"**{hari}:** {kegiatan}")
-    
-    st.balloons()
+    with st.spinner("Mengirim data ke AI di Hugging Face..."):
+        try:
+            # Mengirim data ke API
+            response = requests.post(API_URL, json=payload)
+            response.raise_for_status() 
+            
+            # Mendapatkan hasil prediksi dari API
+            result = response.json()
+            predicted_level = result.get("prediksi_level", "Beginner").capitalize() 
+
+            # Mengirimkan level AI ke sistem pakar Anda
+            coach = SportScienceRecommender()
+            rekom = coach.dapatkan_rekomendasi(umur, predicted_level, target, pace_m, pace_d, mileage, hari_aktif)
+
+            # Menampilkan Hasil di Layar
+            st.divider()
+            res_col1, res_col2 = st.columns([1, 2])
+            
+            with res_col1:
+                st.metric("Hasil Analisis AI (Level)", predicted_level.upper())
+                st.info(f"**Program:** {rekom['program']}\n\n**Referensi Teori:** {rekom['referensi']}")
+
+            with res_col2:
+                # Membedakan warna notifikasi jika itu peringatan medis
+                if rekom['status'] == 'warning':
+                    st.warning(f"**PERINGATAN KEAMANAN:** {rekom['catatan']}")
+                else:
+                    st.success(f"**CATATAN PELATIH:** {rekom['catatan']}")
+                
+                st.markdown("#### Jadwal Latihan Mingguan Anda:")
+                for hari, kegiatan in rekom['jadwal'].items():
+                    st.write(f"**{hari}:** {kegiatan}")
+            
+            # Balon perayaan hanya muncul jika tidak ada peringatan medis
+            if rekom['status'] == 'success':
+                st.balloons()
+
+        except Exception as e:
+            st.error(f"Gagal terhubung ke API AI. Pesan Error: {e}")

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+mlflow==3.1.4
+dagshub
+pandas
+scikit-learn==1.6.1
+python-dotenv
+python-multipart
+numpy==2.0.2
+scipy==1.13.1
