@@ -199,7 +199,7 @@ class SportScienceRecommender:
 
 
 # ANTARMUKA PENGGUNA
-st.set_page_config(page_title="AI Coach Lari", page_icon="🏃‍♂️", layout="wide")
+st.set_page_config(page_title="AI Coach Running", page_icon="🏃‍♂️", layout="wide")
 
 st.title("REKOMENDASI PROGRAM LATIHAN LARI BERBASIS AI")
 st.write("Sistem ini menggabungkan **Machine Learning** (API) untuk menilai profil Anda dan **Sistem Pakar** untuk meresepkan jadwal.")
